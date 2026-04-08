@@ -45,7 +45,10 @@ const server = http.createServer((req, res) => {
     telemetry.record(local ? 'LOCAL' : 'CAPI', body, req.url, discriminator);
 
     if (local) {
-      forwardToLocal(body, res);
+      forwardToLocal(body, res).catch(e => {
+        process.stderr.write(`[relay] forwardToLocal error: ${e.message}\n`);
+        if (!res.headersSent) { res.writeHead(502); res.end(JSON.stringify({ error: e.message })); }
+      });
     } else {
       forwardToCAPI(body, req.headers, res, req.url, req.method);
     }
