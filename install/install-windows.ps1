@@ -4,6 +4,13 @@
 
 param([string]$RepoRoot = "C:\.______\SOURCE\remote\github.com\VGM9\capi-relay")
 
+# Fail loudly if not elevated — silent failure is the root cause of ghost installs
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Error "Must run as Administrator. Re-run from an elevated PowerShell prompt."
+    exit 1
+}
+
 $taskName = "capi-relay"
 $node     = (Get-Command node -ErrorAction Stop).Source
 $script   = Join-Path $RepoRoot "capi-relay.js"

@@ -22,9 +22,18 @@ const server = http.createServer((req, res) => {
 
   req.on('data', c => chunks.push(c));
   req.on('end', () => {
+    const raw = Buffer.concat(chunks);
+
+    // Non-POST requests (e.g. GET /models) have no JSON body — forward directly to CAPI.
+    if (req.method !== 'POST' || raw.length === 0) {
+      process.stderr.write(`[relay] CAPI  ${req.method} ${req.url} [no-body]\n`);
+      forwardToCAPI(null, req.headers, res, req.url, req.method);
+      return;
+    }
+
     let body;
     try {
-      body = JSON.parse(Buffer.concat(chunks).toString());
+      body = JSON.parse(raw.toString());
     } catch {
       res.writeHead(400);
       res.end(JSON.stringify({ error: 'invalid JSON' }));
@@ -38,7 +47,7 @@ const server = http.createServer((req, res) => {
     if (local) {
       forwardToLocal(body, res);
     } else {
-      forwardToCAPI(body, req.headers, res, req.url);
+      forwardToCAPI(body, req.headers, res, req.url, req.method);
     }
   });
 
