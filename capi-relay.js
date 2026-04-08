@@ -10,7 +10,7 @@
 // Install as service: see install/ folder
 
 const http = require('http');
-const { isLocalRequest, whyLocal } = require('./lib/route');
+const { isLocalRequest, whyLocal, categorize } = require('./lib/route');
 const { forwardToLocal }  = require('./lib/proxy-local');
 const { forwardToCAPI }   = require('./lib/proxy-capi');
 const telemetry           = require('./lib/telemetry');
@@ -41,11 +41,12 @@ const server = http.createServer((req, res) => {
     }
 
     const { local, discriminator } = whyLocal(body, req.headers);
-    process.stderr.write(`[relay] ${local ? 'LOCAL' : 'CAPI '} ${req.method} ${req.url} [${discriminator}]\n`);
+    const category = local ? categorize(body, req.headers) : 'user';
+    process.stderr.write(`[relay] ${local ? 'LOCAL' : 'CAPI '} ${req.method} ${req.url} [${discriminator}] <${category}>\n`);
     telemetry.record(local ? 'LOCAL' : 'CAPI', body, req.url, discriminator);
 
     if (local) {
-      forwardToLocal(body, res).catch(e => {
+      forwardToLocal(body, res, category).catch(e => {
         process.stderr.write(`[relay] forwardToLocal error: ${e.message}\n`);
         if (!res.headersSent) { res.writeHead(502); res.end(JSON.stringify({ error: e.message })); }
       });
