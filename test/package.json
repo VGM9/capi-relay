@@ -1,0 +1,16 @@
+{
+  "name": "capi-relay-test",
+  "version": "1.0.0",
+  "description": "Test harness for capi-relay — clone and run on any LAN machine to verify local routing",
+  "private": true,
+  "scripts": {
+    "verify": "node verify.js",
+    "watch":  "node watch.js",
+    "status": "node status.js"
+  },
+  "notes": [
+    "verify.js   — assert LOCAL routes appeared for expected discriminators (exit 0=pass)",
+    "watch.js    — tail relay.jsonl in real time, print each event",
+    "status.js   — summary: last N entries, counts by route"
+  ]
+}

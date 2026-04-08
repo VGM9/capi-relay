@@ -1,0 +1,26 @@
+{
+  "project":      "capi-relay",
+  "org":          "vgm9",
+  "repo":         "https://github.com/vgm9/capi-relay",
+  "localPath":    "C:\\.______\\SOURCE\\remote\\github.com\\VGM9\\capi-relay",
+  "born":         "2026-04-06",
+  "purpose":      "LAN-wide relay: Copilot side-channel completions → local LM Studio. All machines.",
+  "port":         8787,
+  "vsCodeSettings": {
+    "github.copilot.advanced.debug.overrideCapiUrl": "http://localhost:8787",
+    "github.copilot.advanced.debug.overrideProxyUrl": "http://localhost:8787"
+  },
+  "routeLogic": {
+    "LOCAL": "userInitiatedRequest===false OR isConversationRequest===false+noStream OR titlePromptMarker",
+    "CAPI": "everything else — transparent passthrough to api.githubcopilot.com"
+  },
+  "telemetryLog": "logs/relay.jsonl",
+  "testHarness":  "test/ (standalone npm pkg, cloneable, zero deps)",
+  "sourceRefs": {
+    "titleSideChannel": "vscode-copilot-chat/src/extension/prompt/node/title.ts",
+    "overrideSettings": "vscode-copilot-chat/src/platform/configuration/common/configurationService.ts (Shared.DebugOverrideCAPIUrl)",
+    "newChatCommand":   "workbench.action.chat.newChat"
+  },
+  "memoryRef":    "/memories/infra.md",
+  "agent":        "ConfigAgent (class, not instance — this file is for the class)"
+}
