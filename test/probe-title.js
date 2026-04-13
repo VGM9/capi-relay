@@ -1,5 +1,6 @@
-// test/probe-title.js — find what makes local models produce title output
-// Run: node test/probe-title.js
+// test/probe-title.js — probe local models for title generation behaviour
+// Run:  node test/probe-title.js                  (auto-discovers loaded models)
+//       node test/probe-title.js qwen/qwen3-8b    (specific model(s))
 'use strict';
 const http = require('http');
 
@@ -30,7 +31,21 @@ const CASES = [
   { label: 'no system + no_think',      sys: null,           params: BASE,  noThink: true },
 ];
 
-const MODELS = ['google/gemma-3-4b', 'qwen/qwen3.5-9b', 'qwen/qwen3.5-35b-a3b'];
+function getModels() {
+  const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
+  if (args.length > 0) return Promise.resolve(args);
+  return new Promise((resolve, reject) => {
+    http.get('http://localhost:1234/v1/models', res => {
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(Buffer.concat(chunks)).data.map(m => m.id).filter(Boolean));
+        } catch (e) { reject(e); }
+      });
+    }).on('error', reject);
+  });
+}
 
 function callLM(model, messages, params) {
   return new Promise(resolve => {
@@ -72,7 +87,9 @@ function show(label, r) {
 }
 
 (async () => {
-  for (const model of MODELS) {
+  const models = await getModels();
+  if (models.length === 0) { console.error('No models found — is LM Studio running?'); process.exit(1); }
+  for (const model of models) {
     console.log(`\n── ${model}`);
     for (const c of CASES) {
       const messages = [];
