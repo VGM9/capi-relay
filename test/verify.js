@@ -2,8 +2,9 @@
 // Usage: node test/verify.js [--since <ISO>] [--discriminator <name>] [--timeout <ms>]
 //
 // Tests:
-//   1. "title" side-channel: discriminator contains 'userInitiatedRequest' or 'titlePromptMarker'
-//   2. "compaction" side-channel: discriminator contains 'isConversationRequest'
+//   1. title side-channel: routed LOCAL via x-initiator=agent or titlePromptMarker fallback
+//   2. compaction side-channel: routed LOCAL via x-initiator=agent
+//   3. agent-with-tools request: routed CAPI to avoid leaking tool-calling chats to local models
 //
 // Exit codes: 0=all asserted tests passed, 1=timeout or assertion failure
 
@@ -22,9 +23,10 @@ const discriminator = flag('--discriminator') || null;
 const timeoutMs   = parseInt(flag('--timeout') || '30000', 10);
 
 const TESTS = [
-  { name: 'title-side-channel',      match: e => e.route === 'LOCAL' && e.discriminator.includes('userInitiated') },
+  { name: 'title-side-channel',      match: e => e.route === 'LOCAL' && e.discriminator === 'x-initiator=agent' && e.path.includes('chat') },
   { name: 'title-marker-fallback',   match: e => e.route === 'LOCAL' && e.discriminator === 'titlePromptMarker' },
-  { name: 'compaction-side-channel', match: e => e.route === 'LOCAL' && e.discriminator.includes('isConversationRequest') },
+  { name: 'compaction-side-channel', match: e => e.route === 'LOCAL' && e.discriminator === 'x-initiator=agent' },
+  { name: 'agent-with-tools-capi',   match: e => e.route === 'CAPI'  && e.discriminator === 'agent-with-tools→CAPI' },
 ];
 
 const activeTests = discriminator
