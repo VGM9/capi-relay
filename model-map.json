@@ -4,8 +4,5 @@
   "_comment3": "returned by GET http://localhost:1234/v1/models.",
   "_comment4": "Delete or leave empty to rely entirely on heuristic auto-mapping.",
 
-  "gpt-4o-mini-2024-07-18": "",
-  "gpt-4o-2024-11-20":      "",
-  "claude-3-5-sonnet-20241022": "",
-  "o3-mini":                ""
+  "_example": "qwen/qwen3-8b"
 }
