@@ -2,7 +2,7 @@
 # Register capi-relay as a Windows Task Scheduler task that starts at login.
 # Run as Administrator. Edit $RepoRoot if needed.
 
-param([string]$RepoRoot = "C:\.______\SOURCE\remote\github.com\VGM9\capi-relay")
+param([string]$RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path)
 
 # Fail loudly if not elevated — silent failure is the root cause of ghost installs
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
