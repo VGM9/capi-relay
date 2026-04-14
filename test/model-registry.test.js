@@ -3,7 +3,12 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { _testing } = require('../lib/model-registry');
+const { clearModelHealth, invalidateCache, noteModelAttemptEnd, noteModelAttemptStart, _testing } = require('../lib/model-registry');
+
+test.beforeEach(() => {
+  invalidateCache();
+  clearModelHealth();
+});
 
 test('estimateSize parses common GGUF model identifiers correctly', () => {
   assert.equal(_testing._estimateSize('qwen/qwen3.5-35b-a3b'), 35);
@@ -45,4 +50,20 @@ test('rankCandidates falls back to exact match and heuristic order for ordinary 
   });
 
   assert.deepEqual(list, ['gpt-4o-mini', 'mini-helper', 'other/model']);
+});
+
+test('rankCandidates deprioritizes busy or cooled-down models', () => {
+  noteModelAttemptStart('slow/model');
+  noteModelAttemptEnd('slow/model', { ok: false, latencyMs: 6000, timeout: true });
+  noteModelAttemptEnd('fast/model', { ok: true, latencyMs: 250 });
+
+  const list = _testing.rankCandidates({
+    requested: 'gpt-4o-mini',
+    available: ['slow/model', 'fast/model'],
+    userMap: {},
+    category: 'title',
+    env: {},
+  });
+
+  assert.deepEqual(list[0], 'fast/model');
 });
